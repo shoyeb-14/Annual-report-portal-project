@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Achievements - Annual Report Portal</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <link rel="stylesheet" href="./acheivements.css">
+  </head>
+  <body>
+    <div id="navbar-container"></div>
+    <div class="page-header">
+      <div class="container">
+        <h1><i class="fas fa-trophy"></i> Annual Achievements</h1>
+        <p>Showcasing our departments' excellence through placement statistics and awards</p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="data-summary">
+        <div class="data-card">
+          <p>Placements in 2025</p>
+          <h4 id="total-placements">--</h4>
+          <p>Students</p>
+        </div>
+        <div class="data-card">
+          <p>Average Package</p>
+          <h4 id="avg-package">--</h4>
+          <p>Lakhs</p>
+        </div>
+        <div class="data-card">
+          <p>Total Awards</p>
+          <h4 id="total-awards">--</h4>
+          <p>Recognitions</p>
+        </div>
+        <div class="data-card">
+          <p>Growth from 2024</p>
+          <h4 id="growth-rate">--</h4>
+          <p>Percentage</p>
+        </div>
+      </div>
+      <h2 class="section-title"><i class="fas fa-chart-line"></i>Placements Over Years</h2>
+      <div class="chart-card">
+        <h3><i class="fas fa-user-graduate"></i>Department-wise Placements (2023-2025)</h3>
+        <div class="chart-container">
+          <canvas id="placementsChart"></canvas>
+        </div>
+      </div>
+      <h2 class="section-title"><i class="fas fa-money-bill-wave"></i>Average Package Trend</h2>
+      <div class="chart-card">
+        <h3><i class="fas fa-chart-area"></i>Average Package Trend (2023-2025, in Lakhs)</h3>
+        <div class="chart-container">
+          <canvas id="avgPackageChart"></canvas>
+        </div>
+      </div>
+      <h2 class="section-title"><i class="fas fa-award"></i>Awards Distribution</h2>
+      <div class="chart-card">
+        <h3><i class="fas fa-medal"></i>Department-wise Awards (2025)</h3>
+        <div class="chart-container">
+          <canvas id="awardsChart"></canvas>
+        </div>
+      </div>
+
+      <div id="error-container" class="error-message" style="display: none;"></div>
+    </div>
+
+    <footer>
+      <div class="container">
+        <p>© 2025 Annual Report Portal by Batch 17 of IT Dept | Academic Excellence & Achievements</p>
+      </div>
+    </footer>
+    <script src="./scripts/acheivements.js"></script>
+  </body>
+</html>

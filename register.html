@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - MLRITM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="./register.css">
+</head>
+<body>
+  <div class="register-box">
+    <div class="text-center mb-2">
+      <img src="./assests/full logo.png" alt="MLRITM" width="180" class="login-logo">
+    </div>
+    <h3><i class="fas fa-user-plus me-2"></i> Register</h3>
+    <form id="registerForm" method="POST">
+      <div class="form-group">
+        <i class="fas fa-user form-icon"></i>
+        <input type="text" class="form-control" name="name" id="name" placeholder="Full Name" required>
+        <div class="error-message" id="nameError">Full name must be at least 3 characters long.</div>
+      </div>
+      <div class="form-group">
+        <i class="fas fa-envelope form-icon"></i>
+        <input type="email" class="form-control" name="email" id="email" placeholder="Email Address" required>
+        <div class="error-message" id="emailError">Please enter a valid email address.</div>
+      </div>
+      <div class="form-group">
+        <i class="fas fa-lock form-icon"></i>
+        <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
+        <i class="fas fa-eye show-password" id="togglePassword"></i>
+        <div class="error-message" id="passwordError">Password must be at least 6 characters.</div>
+      </div>
+      <div class="form-group">
+        <i class="fas fa-user-tag form-icon"></i>
+        <select class="form-control" name="role" id="role" required>
+          <option value="" disabled selected>Select Role</option>
+          <option value="hod">HOD</option>
+          <option value="admin">Admin</option>
+        </select>
+        <div class="error-message" id="roleError">Please select a role.</div>
+      </div>
+      <div class="form-group text-center">
+        <button type="submit" class="btn btn-primary w-100" id="registerBtn">
+          <span class="btn-text">Register</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+    </form>
+    <div class="text-center mt-3">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    $(document).ready(function () {
+      // Show/Hide Password Toggle
+      $('#togglePassword').on('click', function () {
+        const passwordField = $('#password');
+        const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
+        passwordField.attr('type', type);
+        $(this).toggleClass('fa-eye fa-eye-slash');
+      });
+      // Form Validation and Submission
+      $('#registerForm').on('submit', function (e) {
+        e.preventDefault();
+        let isValid = true;
+        const name = $('#name').val().trim();
+        if (name.length < 3) {
+          $('#nameError').show();
+          isValid = false;
+        } else {
+          $('#nameError').hide();
+        }
+        const email = $('#email').val().trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+          $('#emailError').show();
+          isValid = false;
+        } else {
+          $('#emailError').hide();
+        }
+        const password = $('#password').val().trim();
+        if (password.length < 6) {
+          $('#passwordError').show();
+          isValid = false;
+        } else {
+          $('#passwordError').hide();
+        }
+        const role = $('#role').val();
+        if (!role) {
+          $('#roleError').show();
+          isValid = false;
+        } else {
+          $('#roleError').hide();
+        }
+        if (isValid) {
+          const $btn = $('#registerBtn');
+          $btn.prop('disabled', true);
+          $btn.find('.btn-text').hide();
+          $btn.find('.spinner').show();
+          $.ajax({
+            url: 'api/register.php',
+            method: 'POST',
+            data: {
+              name: name,
+              email: email,
+              password: password,
+              role: role
+            },
+            dataType: 'json',
+            success: function (response) {
+              console.log('AJAX response:', response); // Debug log
+              setTimeout(() => {
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').show();
+                $btn.find('.spinner').hide();
+                if (response.status === 'success') {
+                  sessionStorage.setItem('user', JSON.stringify({
+                    name: name,
+                    email: email,
+                    role: role
+                  }));
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                  }).then(() => {
+                    window.location.href = 'login.html'; // Redirect to login
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message
+                  });
+                }
+              }, 2000); // 2-minute delay
+            },
+            error: function (xhr, status, error) {
+              console.error('AJAX error:', { status, error, responseText: xhr.responseText }); // Debug log
+              setTimeout(() => {
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').show();
+                $btn.find('.spinner').hide();
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to connect to the server. Please try again.'
+                });
+              }, 120000); // 2-minute delay
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

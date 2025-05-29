@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academics Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="./academics.css" />
+  </head>
+  <body>
+    <div id="navbar-container"></div>
+
+    <div class="page-header text-center">
+      <div class="container">
+        <h2>Department-wise Academic Dashboard</h2>
+        <p class="lead">
+          Comprehensive performance analysis across all departments
+        </p>
+      </div>
+    </div>
+    <div class="container">
+      <div
+        class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
+        id="departments-container"
+      >
+        <div class="text-center w-100 my-5 loading-spinner">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="updateModal" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Update Department Details</h3>
+            <button type="button" class="close-btn">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="updateForm">
+              <div class="form-group">
+                <label for="deptName" class="form-label">Department Name</label>
+                <input
+                  type="text"
+                  id="deptName"
+                  class="form-control"
+                  readonly
+                />
+              </div>
+              <div class="form-group">
+                <label for="totalStudents" class="form-label"
+                  >Total Students</label
+                >
+                <input type="number" id="totalStudents" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="passedStudents" class="form-label"
+                  >Passed Students</label
+                >
+                <input type="number" id="passedStudents" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="failedStudents" class="form-label"
+                  >Failed Students</label
+                >
+                <input type="number" id="failedStudents" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="backlogStudents" class="form-label"
+                  >Backlog Students</label
+                >
+                <input
+                  type="number"
+                  id="backlogStudents"
+                  class="form-control"
+                />
+              </div>
+              <button type="submit" class="submit-btn">
+                <i class="fas fa-save me-2"></i>Update Records
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $(document).ready(function () {
+        const container = $("#departments-container");
+        const updateModal = $("#updateModal")[0];
+        const closeBtn = $(".close-btn")[0];
+        const updateForm = $("#updateForm")[0];
+        let currentDeptId;
+        function createPieChart(canvasId, passed, failed, backlogs) {
+          const total = passed + failed + backlogs;
+          const ctx = document.getElementById(canvasId).getContext("2d");
+          new Chart(ctx, {
+            type: "doughnut",
+            data: {
+              labels: ["Passed", "Failed", "Backlogs"],
+              datasets: [
+                {
+                  data: [passed, failed, backlogs],
+                  backgroundColor: [
+                    "rgba(76, 201, 240, 0.9)", // Success color
+                    "rgba(247, 37, 133, 0.9)", // Danger color
+                    "rgba(248, 150, 30, 0.9)", // Warning color
+                  ],
+                  borderColor: [
+                    "rgba(76, 201, 240, 1)",
+                    "rgba(247, 37, 133, 1)",
+                    "rgba(248, 150, 30, 1)",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "70%",
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    color: "#495057",
+                    font: {
+                      family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                      size: 12,
+                      weight: "500",
+                    },
+                    padding: 20,
+                  },
+                },
+                tooltip: {
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  titleFont: {
+                    size: 14,
+                    weight: "600",
+                  },
+                  bodyFont: {
+                    size: 12,
+                  },
+                  callbacks: {
+                    label: function (context) {
+                      let label = context.label || "";
+                      if (context.parsed !== null) {
+                        const percentage =
+                          total > 0
+                            ? ((context.parsed / total) * 100).toFixed(2)
+                            : 0;
+                        label += `: ${context.parsed} (${percentage}%)`;
+                      }
+                      return label;
+                    },
+                  },
+                },
+              },
+            },
+          });
+        }
+        function openUpdateModal(dept) {
+          currentDeptId = dept.id;
+          $("#deptName").val(dept.name);
+          $("#totalStudents").val(dept.total_students);
+          $("#passedStudents").val(dept.passed);
+          $("#failedStudents").val(dept.failed);
+          $("#backlogStudents").val(dept.backlogs);
+          updateModal.style.display = "block";
+          document.body.style.overflow = "hidden"; // Prevent body scrolling
+        }
+        function closeModal() {
+          updateModal.style.display = "none";
+          document.body.style.overflow = "auto"; // Re-enable body scrolling
+        }
+        updateForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const updatedData = {
+            department_id: currentDeptId,
+            total_students: $("#totalStudents").val(),
+            passed: $("#passedStudents").val(),
+            failed: $("#failedStudents").val(),
+            backlogs: $("#backlogStudents").val(),
+          };
+          $.ajax({
+            url: "api/fetch_reports.php",
+            method: "GET",
+            dataType: "json",
+            data: { department_id: dept.department_id }, // Fix: Correct parameter name
+            success: function (response) {
+              if (response.status === "success") {
+                console.log("Data loaded successfully:", response.data);
+              } else {
+                alert("Error fetching department data: " + response.message);
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("AJAX Error:", status, error);
+              alert("Failed to fetch department data.");
+            },
+          });
+        });
+        closeBtn.addEventListener("click", closeModal);
+        window.addEventListener("click", function (event) {
+          if (event.target == updateModal) {
+            closeModal();
+          }
+        });
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && updateModal.style.display === "block") {
+            closeModal();
+          }
+        });
+        function loadDepartments() {
+          container.html(`
+            <div class="text-center w-100 my-5 loading-spinner">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          `);
+          $.ajax({
+            url: "api/fetch_academics.php",
+            method: "GET",
+            dataType: "json",
+            success: function (response) {
+              container.empty();
+              if (
+                response.status !== "success" ||
+                !Array.isArray(response.data)
+              ) {
+                container.html(`
+                  <div class="alert-container">
+                    <div class="alert alert-warning">
+                      <i class="fas fa-exclamation-circle me-2"></i> No academic data available.
+                    </div>
+                  </div>
+                `);
+                return;
+              }
+              const departments = response.data;
+              departments.forEach((dept, index) => {
+                const canvasId = `deptChart-${index}`;
+                container.append(`
+                  <div class="col">
+                    <div class="department-card card h-100">
+                      <div class="card-body">
+                        <h5 class="card-title">${
+                          dept.name
+                        }</h5>                      
+                        <div class="stats-container">
+                          <div class="stat-item">
+                            <span class="stat-label">Total Students:</span>
+                            <span class="stat-value">${
+                              dept.total_students
+                            }</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">Passed:</span>
+                            <span class="stat-value text-success">${
+                              dept.passed
+                            }</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">Failed:</span>
+                            <span class="stat-value text-danger">${
+                              dept.failed
+                            }</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">Backlogs:</span>
+                            <span class="stat-value text-warning">${
+                              dept.backlogs
+                            }</span>
+                          </div>
+                        </div>                
+                        <div class="chart-container">
+                          <canvas id="${canvasId}"></canvas>
+                        </div>                      
+                        <div class="action-buttons w-100">
+                          <button class="btn update-btn" data-dept='${JSON.stringify(
+                            dept
+                          )}'>
+                            <i class="fas fa-edit me-1"></i> Update
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `);
+                createPieChart(
+                  canvasId,
+                  dept.passed,
+                  dept.failed,
+                  dept.backlogs
+                );
+                const updateButton = container.find(
+                  `[data-dept='${JSON.stringify(dept)}']`
+                )[0];
+                if (updateButton) {
+                  updateButton.addEventListener("click", function () {
+                    openUpdateModal(dept);
+                  });
+                }
+              });
+            },
+            error: function (xhr, status, error) {
+              console.error("AJAX Error:", status, error);
+              container.html(`
+                <div class="alert-container">
+                  <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i> Failed to load department data. Please try again later.
+                  </div>
+                </div>
+              `);
+            },
+          });
+        }
+        loadDepartments();
+      });
+    </script>
+  </body>
+</html>
